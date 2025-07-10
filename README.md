@@ -54,7 +54,7 @@ npm start
 
 
 ## 📁 Folder Structure
-
+```
 ├── public/
 │   ├── ding.mp3
 │   ├── timeup.mp3
@@ -62,7 +62,9 @@ npm start
 │   ├── assets/       // All game images
 │   ├── components/   // GameScreen, LevelSelector, HomeScreen
 │   ├── data/         // JSON files for each level
+```
 
-##🙌 Creator
+## 🙌 Creator
 Nishanth Gowda
-https://github.com/NishanthGowda007 |||||| https://www.linkedin.com/in/nishanth-gowda007
+https://github.com/NishanthGowda007 
+https://www.linkedin.com/in/nishanth-gowda007
