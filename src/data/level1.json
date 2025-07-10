@@ -1,0 +1,14 @@
+{
+  "gameTitle": "Spot the Difference - Ladybugs",
+  "images": {
+    "image1": "level1-image1.jpg",
+    "image2": "level1-image2.jpg",
+    "width": 940,
+    "height": 936
+  },
+  "differences": [
+    { "x": 135, "y": 325, "width": 85, "height": 85 },
+    { "x": 490, "y": 675, "width": 60, "height": 70 },
+    { "x": 615, "y": 430, "width": 60, "height": 60 }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "gameTitle": "Spot the Difference - Concert",
+  "images": {
+    "image1": "level5-image1.jpg",
+    "image2": "level5-image2.jpg",
+    "width": 718,        
+    "height": 805
+  },
+  "differences": [
+    { "x": 50, "y": 60, "width": 70, "height": 70 },
+    { "x": 105, "y": 665, "width": 70, "height": 70 },
+    { "x": 320, "y": 435,"width": 110, "height": 110 }
+  ]
+}
+

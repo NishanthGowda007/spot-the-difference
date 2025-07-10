@@ -1,0 +1,15 @@
+{
+  "gameTitle": "Spot the Difference - Lab",
+  "images": {
+    "image1": "level2-image1.jpg",
+    "image2": "level2-image2.jpg",
+    "width": 705,
+    "height": 530
+  },
+  "differences": [
+    { "x": 445, "y": 495, "width": 50, "height": 50 },
+    { "x": 210, "y": 80, "width": 60, "height": 60 },
+    { "x": 565, "y": 60, "width": 50, "height": 50 },
+    { "x": 470, "y": 120, "width": 50, "height": 50 }
+  ]
+}

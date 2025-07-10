@@ -1,0 +1,14 @@
+{
+  "gameTitle": "Spot the Difference - Fruits",
+  "images": {
+    "image1": "level3-image1.jpg",
+    "image2": "level3-image2.jpg",
+    "width": 886,        
+    "height": 855
+  },
+  "differences": [
+    { "x": 130, "y": 400, "width": 90, "height": 90 },
+    { "x": 550, "y": 230, "width": 80, "height": 80 },
+    { "x": 740, "y": 600, "width": 100, "height": 100 }
+  ]
+}
