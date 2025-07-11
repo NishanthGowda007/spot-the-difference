@@ -63,8 +63,35 @@ npm start
 │   ├── components/   // GameScreen, LevelSelector, HomeScreen
 │   ├── data/         // JSON files for each level
 ```
+## 🧩 Add New Levels
 
-## 🙌 Creator
-Nishanth Gowda
-https://github.com/NishanthGowda007 
-https://www.linkedin.com/in/nishanth-gowda007
+Each game level is controlled by a separate JSON file inside `src/data/`.
+
+### Example JSON Format
+
+```
+{
+  "gameTitle": "Spot the Difference - Forest",
+  "images": {
+    "image1": "forest1.jpg",
+    "image2": "forest2.jpg"
+  },
+  "differences": [
+    { "x": 120, "y": 180, "width": 40, "height": 40 },
+    { "x": 300, "y": 150, "width": 35, "height": 35 }
+  ]
+}
+```
+To add a new level:
+
+Place the two images in public/assets/
+
+Create a new JSON file in src/data/
+
+Update LevelSelector component to include the new level title + path
+
+
+## 🙌 Creator  
+👨‍💻 **Nishanth Gowda**  
+[GitHub](https://github.com/NishanthGowda007) • [LinkedIn](https://www.linkedin.com/in/nishanth-gowda007)
+
