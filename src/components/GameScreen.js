@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-// Image map for all levels
 const imageMap = {
   'level1-image1.jpg': require('../assets/level1-image1.jpg'),
   'level1-image2.jpg': require('../assets/level1-image2.jpg'),
@@ -21,23 +20,30 @@ const imageMap = {
   'level8-image2.jpg': require('../assets/level8-image2.jpg')
 };
 
-const dingSound = new Audio('/ding.mp3');
-const timeupSound = new Audio('/timeup.mp3');
-
 const GameScreen = () => {
   const { level } = useParams();
   const navigate = useNavigate();
-  const timerRef = useRef(null);
 
+  const timerRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const dingSoundRef = useRef(null);
+  const timeupSoundRef = useRef(null);
+  const failed2xSoundRef = useRef(null);
+
+  const [gameKey, setGameKey] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
   const [gameData, setGameData] = useState(null);
   const [found, setFound] = useState([]);
   const [completed, setCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
   const [timeExpired, setTimeExpired] = useState(false);
   const [scale, setScale] = useState(1);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
-  // Load level JSON and reset all state
-  useEffect(() => {
+  const loadLevel = useCallback(() => {
+    clearInterval(timerRef.current);
+    clearTimeout(timeoutRef.current);
+
     import(`../data/${level}.json`)
       .then((data) => {
         setGameData(data.default || data);
@@ -45,20 +51,45 @@ const GameScreen = () => {
         setCompleted(false);
         setTimeLeft(60);
         setTimeExpired(false);
+        setHasInteracted(false);
       })
-      .catch(() => alert('Level not found'));
+      .catch((error) => {
+        console.error('Level not found or failed to load:', error);
+        alert('Level not found');
+      });
   }, [level]);
 
-  // Timer countdown
   useEffect(() => {
-    if (!gameData || completed) return;
+    loadLevel();
+  }, [loadLevel, gameKey]);
+
+  // Initializeee sound on first interaction
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      if (!hasInteracted) {
+        dingSoundRef.current = new Audio('/ding.mp3');
+        timeupSoundRef.current = new Audio('/timeup.mp3');
+        failed2xSoundRef.current = new Audio('/failed.mp3');
+        setHasInteracted(true);
+      }
+      window.removeEventListener('click', handleFirstInteraction);
+    };
+
+    window.addEventListener('click', handleFirstInteraction);
+    return () => window.removeEventListener('click', handleFirstInteraction);
+  }, [hasInteracted]);
+
+  useEffect(() => {
+    if (!gameData || completed || timeExpired) return;
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
           setTimeExpired(true);
-          timeupSound.play();
+          if (hasInteracted && timeupSoundRef.current) {
+            timeupSoundRef.current.play().catch(() => {});
+          }
           return 0;
         }
         return prev - 1;
@@ -66,50 +97,56 @@ const GameScreen = () => {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [gameData, completed]);
+  }, [gameData, completed, timeExpired, hasInteracted]);
 
-  // Auto redirect to home if time runs out
+  // Auto redirect
   useEffect(() => {
     if (timeExpired && !completed) {
-      const timeout = setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         navigate('/');
       }, 5000);
-      return () => clearTimeout(timeout);
+      return () => clearTimeout(timeoutRef.current);
     }
-  }, [timeExpired]);
+  }, [timeExpired, completed, navigate]);
 
-  // Auto redirect to next level if completed
+  useEffect(() => {
+    if (retryCount === 2 && timeExpired && !completed && hasInteracted) {
+      failed2xSoundRef.current?.play().catch(err => {
+        console.log('🔇 Failed2x sound error:', err);
+      });
+    }
+  }, [retryCount, timeExpired, completed, hasInteracted]);
+
   useEffect(() => {
     if (gameData && found.length === gameData.differences.length) {
       setCompleted(true);
       clearInterval(timerRef.current);
 
-      const currentLevelNum = parseInt(level.replace('level', ''));
+      const currentLevelNum = parseInt(level.replace('level', ''), 10);
       const nextLevel = `level${currentLevelNum + 1}`;
 
-      const timeout = setTimeout(() => {
-        navigate(`/game/${nextLevel}`);
-      }, 3000);
+      timeoutRef.current = setTimeout(() => {
+        navigate(currentLevelNum >= 8 ? '/' : `/game/${nextLevel}`);
+      }, currentLevelNum >= 8 ? 5000 : 3000);
 
-      return () => clearTimeout(timeout);
+      return () => clearTimeout(timeoutRef.current);
     }
-  }, [found]);
+  }, [found, gameData, level, navigate]);
 
-  const handleImageLoad = (e) => {
-    const displayedWidth = e.target.clientWidth;
-    const expectedWidth = gameData.images.width;
-    const scaleFactor = expectedWidth / displayedWidth;
-    setScale(scaleFactor);
-  };
+  const handleImageLoad = useCallback((e) => {
+    const img = e.target;
+    if (gameData && img.naturalWidth) {
+      const scaleFactor = img.naturalWidth / img.clientWidth;
+      setScale(scaleFactor);
+    }
+  }, [gameData]);
 
   const handleClick = (e, img) => {
-    const rect = img.getBoundingClientRect();
-    const scaleX = img.naturalWidth / img.clientWidth;
-    const scaleY = img.naturalHeight / img.clientHeight;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+    if (completed || timeExpired) return;
 
-    console.log(`🖱️ Click at: x = ${Math.floor(x)}, y = ${Math.floor(y)}`);
+    const rect = img.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * scale;
+    const y = (e.clientY - rect.top) * scale;
 
     gameData.differences.forEach((diff, idx) => {
       const { x: dx, y: dy, width, height } = diff;
@@ -119,13 +156,15 @@ const GameScreen = () => {
         !found.includes(idx)
       ) {
         setFound((prev) => [...prev, idx]);
-        dingSound.play();
+        dingSoundRef.current?.play().catch(() => {});
       }
     });
   };
 
-  const renderMarkers = () =>
-    found.map((index) => {
+  const renderMarkers = () => {
+    if (!gameData || scale === 0) return null;
+
+    return found.map((index) => {
       const { x, y, width, height } = gameData.differences[index];
       return (
         <div
@@ -143,14 +182,16 @@ const GameScreen = () => {
         />
       );
     });
+  };
 
   if (!gameData) return <p>Loading...</p>;
 
   const img1 = imageMap[gameData.images.image1];
   const img2 = imageMap[gameData.images.image2];
+  const currentLevelNum = parseInt(level.replace('level', ''), 10);
 
   return (
-    <div style={{
+    <div key={gameKey} style={{
       minHeight: '100vh',
       background: 'linear-gradient(to right, #f0f2f5, #dfe9f3)',
       padding: '2rem',
@@ -209,46 +250,80 @@ const GameScreen = () => {
         ))}
       </div>
 
-      {/* ✅ Success UI */}
       {completed && (
         <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <h3 style={{ color: '#28a745', fontSize: '1.7rem', marginBottom: '0.5rem' }}>
-            🎉 Great job! You completed this level in {60 - timeLeft}s!
-          </h3>
-          <p style={{ color: '#444', fontSize: '1rem' }}>
-            🚀 Redirecting to the next challenge...
-          </p>
+          {currentLevelNum === 8 ? (
+            <>
+              <h3 style={{ color: '#28a745', fontSize: '1.7rem', marginBottom: '0.5rem' }}>
+                🏁 You crushed all 8 levels! 🔥
+              </h3>
+              <p style={{ color: '#444', fontSize: '1rem' }}>
+                🎖️ Spot-the-Diff Champion unlocked! Taking you home... 🏡
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 style={{ color: '#28a745', fontSize: '1.7rem', marginBottom: '0.5rem' }}>
+                ✅ Nailed it in {60 - timeLeft}s!
+              </h3>
+              <p style={{ color: '#444', fontSize: '1rem' }}>
+                ⏭️ Loading your next challenge... Get ready! 🧠🕵️
+              </p>
+            </>
+          )}
         </div>
       )}
 
-      {/* ❌ Time's up UI */}
       {timeExpired && !completed && (
         <div style={{ marginTop: '2rem', textAlign: 'center' }}>
           <h3 style={{ color: 'red', marginBottom: '1rem' }}>
-            ⏱ Time's up!
+            {retryCount >= 2 ? '😭 You failed 2 times!' :
+              retryCount === 1 ? '😪 Failed again!' : '⏱ Time\'s up!'}
           </h3>
-          <button
-            onClick={() => navigate(`/game/${level}`)}
-            style={{
-              padding: '0.7rem 2rem',
-              backgroundColor: '#ff4d4d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
+
+          {retryCount < 2 ? (
+            <>
+              <button
+                onClick={() => {
+                  clearInterval(timerRef.current);
+                  clearTimeout(timeoutRef.current);
+                  setTimeLeft(60);
+                  setFound([]);
+                  setCompleted(false);
+                  setTimeExpired(false);
+                  setHasInteracted(false);
+                  setRetryCount(prev => prev + 1);
+                  setGameKey(prev => prev + 1);
+                }}
+                style={{
+                  padding: '0.7rem 2rem',
+                  backgroundColor: '#ff4d4d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 500
+                }}
+              >
+                🔁 Try Again
+              </button>
+              <p style={{
+                marginTop: '1rem',
+                fontSize: '0.95rem',
+                color: '#444'
+              }}>
+                Or you'll be redirected to the Home Page in 5 seconds...
+              </p>
+            </>
+          ) : (
+            <p style={{
               fontSize: '1rem',
-              fontWeight: 500
-            }}
-          >
-            🔁 Try Again
-          </button>
-          <p style={{
-            marginTop: '1rem',
-            fontSize: '0.95rem',
-            color: '#444'
-          }}>
-            Or you'll be redirected to the Home Page in 5 seconds...
-          </p>
+              color: '#666'
+            }}>
+              Redirecting to home...
+            </p>
+          )}
         </div>
       )}
     </div>
