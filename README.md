@@ -4,7 +4,7 @@
 Built to showcase frontend skills, animations, logic handling, and responsive design.
 
 ### 🔗 Live Demo:
-👉 [Play Now on Vercel](https://spot-the-difference.vercel.app)
+👉 [Play Now on Vercel](https://spotnish.vercel.app)
 
 ---
 
