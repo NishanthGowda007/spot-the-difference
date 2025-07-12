@@ -5,35 +5,26 @@ Built to showcase frontend skills, animations, logic handling, and responsive de
 
 ### 🔗 Live Demo:
 👉 [Play Now on Vercel](https://spotnish.vercel.app)
+## 📌 How to Play
 
-### 📌 How to Play
-Start the Game
+1. **Start the Game**  
+   Click **"Start Game"** to begin from Level 1, or use **"Level Select"** to jump to any level.
 
-Click "Start Game" to begin from Level 1, or use "Level Select" to jump to any level.
+2. **Find the Differences**  
+   Two similar images will appear side by side.  
+   Click on the **differences** you spot in either image.  
+   Correct clicks trigger a **ding sound** and a red highlight.
 
-Find the Differences
+3. **Time Limit**  
+   You have **60 seconds** to find all the differences in each level.  
+   The timer is displayed at the top.
 
-Two similar images will appear side by side.
+4. **Try Again Logic**  
+   If time runs out the **first time**, you'll see a **"Try Again"** button to replay the level.  
+   If you fail again, a **"❌ Failed again"** message appears, and you’re redirected to the home screen.
 
-Click on the differences you spot in either image.
-
-Correct clicks trigger a ding sound and a red highlight.
-
-Time Limit
-
-You have 60 seconds to find all the differences in each level.
-
-The timer is displayed at the top.
-
-Try Again Logic
-
-If time runs out the first time, you'll see a "Try Again" button to replay the level.
-
-If you fail again, a "❌ Failed again" message appears, and you’re redirected to the home screen.
-
-Win Condition
-
-If you find all the differences in time, you’ll see a success message, and can return to the Level Selector to try more levels.
+5. **Win Condition**  
+   If you find all the differences in time, you’ll see a **success message**, and can return to the Level Selector to try more levels.
 
 ## 🎮 Game Features
 
